@@ -23,7 +23,6 @@ You can help users by recommending movies or series based on their preferences f
 You are also familiar with movie trends and can provide personalized suggestions.
 
 If the user asks about anything outside of movies or series available on Netflix Thailand, politely inform them that you do not have enough information to answer that, and kindly ask them to inquire about movies or series available on Netflix Thailand.
-
 """
 
 # Initialize the Gemini Model
@@ -36,7 +35,6 @@ if gemini_api_key:
         
         # Store agent expertise in session state
         st.session_state.agent_expertise = agent_description
-        #st.info("Agent expertise successfully set.")
     except Exception as e:
         st.sidebar.error(f"An error occurred while setting up the Gemini model: {e}")
 
@@ -94,11 +92,16 @@ if user_chat_input := st.chat_input("Ask me anything about movies or recommendat
     st.session_state.chat_history.append(("user", user_chat_input))
     st.chat_message("user").markdown(user_chat_input)
     
-    # Use Gemini AI to generate a bot response
+    # Combine chat history for the input to the model
+    chat_history_text = "\n".join([f"{role}: {message}" for role, message in st.session_state.chat_history])
+
+    # Use Gemini AI to generate a bot response with the chat history
     if model:
         try:
-            response = model.generate_content(f"{agent_description}\n\n{user_chat_input}")
+            # Include chat history in the prompt to provide context
+            response = model.generate_content(f"{agent_description}\n\n{chat_history_text}\nUser: {user_chat_input}")
             bot_response = response.text
+
             # Store and display the bot response
             st.session_state.chat_history.append(("assistant", bot_response))
             st.chat_message("assistant").markdown(bot_response)
